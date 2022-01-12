@@ -8,212 +8,227 @@ using System.Windows;
 
 namespace DarklingsLauncher
 {
-	enum LauncherStatus
-	{
-		Ready,
-		Failed,
-		DownloadingGame,
-		UpdatingGame
-	}
-	public partial class MainWindow : Window
-	{
-		private string _rootPath;
-		private string _versionFile;
-		private string _gameZip;
-		private string _gameExe;
+    enum LauncherStatus
+    {
+        ready,
+        failed,
+        downloadingGame,
+        downloadingUpdate
+    }
 
-		private LauncherStatus _launcherStatus;
-		internal LauncherStatus LauncherStatus
-		{
-			get => _launcherStatus;
-			set
-			{
-				_launcherStatus = value;
-				switch (_launcherStatus)
-				{
-					case LauncherStatus.Ready:
-						PlayButton.Content = "Play";
-						break;
-					case LauncherStatus.Failed:
-						PlayButton.Content = "Retry";
-						break;
-					case LauncherStatus.DownloadingGame:
-						PlayButton.Content = "Downloading";
-						break;
-					case LauncherStatus.UpdatingGame:
-						PlayButton.Content = "Updating";
-						break;
-					default:
-						break;
-				}
-			}
-		}
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private string rootPath;
+        private string versionFile;
+        private string gameZip;
+        private string gameExe;
 
-		public MainWindow()
-		{
-			InitializeComponent();
+        private LauncherStatus _status;
+        internal LauncherStatus Status
+        {
+            get => _status;
+            set
+            {
+                _status = value;
+                switch (_status)
+                {
+                    case LauncherStatus.ready:
+                        PlayButton.Content = "Launch";
+                        break;
+                    case LauncherStatus.failed:
+                        PlayButton.Content = "Update Failed - Retry";
+                        break;
+                    case LauncherStatus.downloadingGame:
+                        PlayButton.Content = "Downloading Game";
+                        break;
+                    case LauncherStatus.downloadingUpdate:
+                        PlayButton.Content = "Downloading Update";
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
-			_rootPath = Directory.GetCurrentDirectory();
-			_versionFile = Path.Combine(_rootPath, "Version.txt");
-			_gameZip = Path.Combine(_rootPath, "Build.zip");
-			_gameExe = Path.Combine(_rootPath, "Build", "Darklings.exe");
-		}
+        public MainWindow()
+        {
+            InitializeComponent();
 
-		private void CheckForUpdates()
-		{
-			if (File.Exists(_versionFile))
-			{
-				Version localVersion = new Version(File.ReadAllText(_versionFile));
-				VersionText.Text = localVersion.ToString();
+            rootPath = Directory.GetCurrentDirectory();
+            versionFile = Path.Combine(rootPath, "Version.txt");
+            gameZip = Path.Combine(rootPath, "Build.zip");
+            gameExe = Path.Combine(rootPath, "Build", "Darklings.exe");
+        }
 
-				try
-				{
-					WebClient webClient = new WebClient();
-					Version onlineVersion = new Version(webClient.DownloadString(""));
-					if (onlineVersion.IsDifferentThan(localVersion))
-					{
-						InstallGameFiles(true, onlineVersion);
-					}
-					else
-					{
-						LauncherStatus = LauncherStatus.Ready;
-					}
-				}
-				catch (Exception ex)
-				{
-					LauncherStatus = LauncherStatus.Failed;
-					MessageBox.Show($"Error when checking for updates: {ex}");
-				}
-			}
-			else
-			{
-				InstallGameFiles(false, Version.zero);
-			}
-		}
+        private void CheckForUpdates()
+        {
+            if (File.Exists(versionFile))
+            {
+                Version localVersion = new Version(File.ReadAllText(versionFile));
+                VersionText.Text = "Ver " + localVersion.ToString();
 
-		private void InstallGameFiles(bool isUpdate, Version onlineVersion)
-		{
-			try
-			{
-				WebClient webClient = new WebClient();
-				if (isUpdate)
-				{
-					LauncherStatus = LauncherStatus.UpdatingGame;
-				}
-				else
-				{
-					LauncherStatus = LauncherStatus.DownloadingGame;
-					onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/uc?export=download&id=1R3GT_VINzmNoXKtvnvuJw6C86-k3Jr5s"));
-				}
+                try
+                {
+                    WebClient webClient = new WebClient();
+                    Version onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N"));
 
-				webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-				webClient.DownloadFileAsync(new Uri("https://drive.google.com/uc?export=download&id=1SNA_3P5wVp4tZi5NKhiGAAD6q4ilbaaf"), _gameZip, onlineVersion);
-			}
-			catch (Exception ex)
-			{
-				LauncherStatus = LauncherStatus.Failed;
-				MessageBox.Show($"Error when installing game: {ex}");
-			}
-		}
+                    if (onlineVersion.IsDifferentThan(localVersion))
+                    {
+                        InstallGameFiles(true, onlineVersion);
+                    }
+                    else
+                    {
+                        Status = LauncherStatus.ready;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Status = LauncherStatus.failed;
+                    MessageBox.Show($"Error checking for game updates: {ex}");
+                }
+            }
+            else
+            {
+                InstallGameFiles(false, Version.zero);
+            }
+        }
 
-		private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
-		{
-			try
-			{
-				string onlineVersion = ((Version)e.UserState).ToString();
-				ZipFile.ExtractToDirectory(_gameZip, _rootPath, true);
-				File.Delete(_gameZip);
+        private void InstallGameFiles(bool _isUpdate, Version _onlineVersion)
+        {
+            try
+            {
+                WebClient webClient = new WebClient();
+                FileDownloader fileDownloader = new FileDownloader();
+                if (_isUpdate)
+                {
+                    Status = LauncherStatus.downloadingUpdate;
+                }
+                else
+                {
+                    Status = LauncherStatus.downloadingGame;
+                    _onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N"));
+                }
+                fileDownloader.DownloadFileCompleted += (sender, e) => DownloadGameCompletedCallback(sender, e, _onlineVersion);
+                fileDownloader.DownloadFileAsync("https://drive.google.com/uc?export=download&id=1On2RMzHNSTV3oYhDNMd77F4lU9zCJPm-", gameZip);
+            }
+            catch (Exception ex)
+            {
+                Status = LauncherStatus.failed;
+                MessageBox.Show($"Error installing game files: {ex}");
+            }
+        }
 
-				File.WriteAllText(_versionFile, onlineVersion);
+        private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e, Version _onlineVersion)
+        {
+            try
+            {
+                string onlineVersion = "Ver " +  _onlineVersion.ToString();
+                ZipFile.ExtractToDirectory(gameZip, rootPath, true);
+                File.Delete(gameZip);
 
-				VersionText.Text = onlineVersion;
-				LauncherStatus = LauncherStatus.Ready;
-			}
-			catch (Exception ex)
-			{
-				LauncherStatus = LauncherStatus.Failed;
-				MessageBox.Show($"Error finishing download: {ex}");
-			}
-		}
+                File.WriteAllText(versionFile, onlineVersion);
 
-		private void Window_ContentRendered(object sender, EventArgs e)
-		{
-			CheckForUpdates();
-		}
+                VersionText.Text = onlineVersion;
+                Status = LauncherStatus.ready;
+            }
+            catch (Exception ex)
+            {
+                Status = LauncherStatus.failed;
+                MessageBox.Show($"Error finishing download: {ex}");
+            }
+        }
 
-		private void PlayButton_Click(object sender, RoutedEventArgs e)
-		{
-			if (File.Exists(_gameExe) && LauncherStatus == LauncherStatus.Ready)
-			{
-				ProcessStartInfo startInfo = new ProcessStartInfo(_gameExe);
-				startInfo.WorkingDirectory = Path.Combine(_rootPath, "Build");
-				Process.Start(startInfo);
+        private void Window_ContentRendered(object sender, EventArgs e)
+        {
+            CheckForUpdates();
+        }
 
-				Close();
-			}
-			else if (LauncherStatus == LauncherStatus.Failed)
-			{
-				CheckForUpdates();
-			}
-		}
-	}
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (File.Exists(gameExe) && Status == LauncherStatus.ready)
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo(gameExe);
+                startInfo.WorkingDirectory = Path.Combine(rootPath, "Build");
+                Process.Start(startInfo);
 
-	struct Version
-	{
-		internal static Version zero = new Version(0, 0, 0);
-		private short _major;
-		private short _minor;
-		private short _patch;
+                Close();
+            }
+            else if (Status == LauncherStatus.failed)
+            {
+                CheckForUpdates();
+            }
+        }
 
-		private Version(short major, short minor, short patch)
-		{
-			_major = major;
-			_minor = minor;
-			_patch = patch;
-		}
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
 
-		internal Version(string version)
-		{
-			string[] versionStrings = version.Split('.');
-			if (versionStrings.Length != 3)
-			{
-				_major = 0;
-				_minor = 0;
-				_patch= 0;
-				return;
-			}
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+    }
 
-			_major = short.Parse(versionStrings[0]);
-			_minor = short.Parse(versionStrings[1]);
-			_patch = short.Parse(versionStrings[2]);
-		}
+    struct Version
+    {
+        internal static Version zero = new Version(0, 0, 0);
 
-		internal bool IsDifferentThan(Version otherVersion)
-		{
-			if (_major != otherVersion._major)
-			{
-				return true;
-			}
-			else
-			{
-				if (_minor != otherVersion._minor)
-				{
-					return true;
-				}
-				else
-				{
-					if (_patch != otherVersion._patch)
-					{
-						return true;
-					}
-				}
-			}
-			return false;
-		}
+        private short major;
+        private short minor;
+        private short subMinor;
 
-		public override string ToString()
-		{
-			return $"{_major}.{_minor}.{_patch}";
-		}
-	}
+        internal Version(short _major, short _minor, short _subMinor)
+        {
+            major = _major;
+            minor = _minor;
+            subMinor = _subMinor;
+        }
+        internal Version(string _version)
+        {
+            string[] versionStrings = _version.Split('.');
+            if (versionStrings.Length != 3)
+            {
+                major = 0;
+                minor = 0;
+                subMinor = 0;
+                return;
+            }
+
+            major = short.Parse(versionStrings[0]);
+            minor = short.Parse(versionStrings[1]);
+            subMinor = short.Parse(versionStrings[2]);
+        }
+
+        internal bool IsDifferentThan(Version _otherVersion)
+        {
+            if (major != _otherVersion.major)
+            {
+                return true;
+            }
+            else
+            {
+                if (minor != _otherVersion.minor)
+                {
+                    return true;
+                }
+                else
+                {
+                    if (subMinor != _otherVersion.subMinor)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return $"{major}.{minor}.{subMinor}";
+        }
+    }
 }
