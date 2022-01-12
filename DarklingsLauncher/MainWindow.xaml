@@ -17,8 +17,8 @@
 	<Grid VerticalAlignment="Top">
 		<Image Stretch="UniformToFill" Source="Images/Darklings.png" HorizontalAlignment="Right"></Image>
 		<TextBlock Style="{StaticResource PressStart2P}" Text="Ver 0.0.0"  Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontWeight="Light" FontSize="13" Foreground="White" Margin="0,0,106,150"></TextBlock>
-		<Button Style="{StaticResource PressStart2P}" Name="PlayButton" Content="Update" Click="PlayButton_Click" Height="60" FontSize="16" Foreground="White" Background="Black" BorderThickness="3" BorderBrush="White" Margin="0,0,106,72" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinWidth="150"></Button>
-		<TextBlock Text="Darklings" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,911,549"></TextBlock>
+		<Button Style="{StaticResource PressStart2P}" Cursor="Hand" Name="PlayButton" Content="Updating" Click="PlayButton_Click" Height="60" FontSize="16" Foreground="White" Background="Black" BorderThickness="3" BorderBrush="White" Margin="0,0,106,72" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinWidth="150"></Button>
+		<TextBlock Text="Darklings" Name="TopBarName" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,717,549" RenderTransformOrigin="0.5,0.5" TextAlignment="Left" Width="265"></TextBlock>
 		<StackPanel Background="#7F000000" WindowChrome.IsHitTestVisibleInChrome="True" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Vertical" Height="576" Width="48">
 			<Button Name="GamejoltButton" Cursor="Hand" Click="GamejoltButton_Click" Height="32" Width="32"  Margin="0,133,0,0" FontSize="20" FontWeight="Bold" Foreground="White" BorderBrush="Black" HorizontalAlignment="Center" >
 				<Button.Background>

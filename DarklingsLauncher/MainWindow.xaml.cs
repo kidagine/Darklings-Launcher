@@ -13,6 +13,7 @@ namespace DarklingsLauncher
 		ready,
 		failed,
 		downloadingGame,
+		downloadGame,
 		downloadingUpdate
 	}
 
@@ -45,6 +46,9 @@ namespace DarklingsLauncher
 					case LauncherStatus.downloadingGame:
 						PlayButton.Content = "Downloading";
 						break;
+					case LauncherStatus.downloadGame:
+						PlayButton.Content = "Download";
+						break;
 					case LauncherStatus.downloadingUpdate:
 						PlayButton.Content = "Updating";
 						break;
@@ -57,11 +61,17 @@ namespace DarklingsLauncher
 		public MainWindow()
 		{
 			InitializeComponent();
-
 			rootPath = Directory.GetCurrentDirectory();
 			versionFile = Path.Combine(rootPath, "Version.txt");
 			gameZip = Path.Combine(rootPath, "Build.zip");
 			gameExe = Path.Combine(rootPath, "Build", "Darklings.exe");
+
+			if (File.Exists(versionFile))
+			{
+				Version localVersion = new Version(File.ReadAllText(versionFile));
+				VersionText.Text = "Ver " + localVersion.ToString();
+				TopBarName.Text = "Darklings " + localVersion.ToString();
+			}
 		}
 
 		private void CheckForUpdates()
@@ -70,7 +80,7 @@ namespace DarklingsLauncher
 			{
 				Version localVersion = new Version(File.ReadAllText(versionFile));
 				VersionText.Text = "Ver " + localVersion.ToString();
-
+				TopBarName.Text = "Darklings " + localVersion.ToString();
 				try
 				{
 					WebClient webClient = new WebClient();
@@ -78,8 +88,7 @@ namespace DarklingsLauncher
 
 					if (onlineVersion.IsDifferentThan(localVersion))
 					{
-						Status = LauncherStatus.downloadingGame;
-						//InstallGameFiles(true, onlineVersion);
+						InstallGameFiles(true, onlineVersion);
 					}
 					else
 					{
@@ -94,7 +103,7 @@ namespace DarklingsLauncher
 			}
 			else
 			{
-				InstallGameFiles(false, Version.zero);
+				Status = LauncherStatus.downloadGame;
 			}
 		}
 
@@ -119,7 +128,7 @@ namespace DarklingsLauncher
 			catch (Exception ex)
 			{
 				Status = LauncherStatus.failed;
-				MessageBox.Show($"Error installing game files: {ex}");
+				MessageBox.Show($"Error while installing, Check if there is a new launcher update on Gamejolt: {ex}");
 			}
 		}
 
@@ -127,7 +136,7 @@ namespace DarklingsLauncher
 		{
 			try
 			{
-				string onlineVersion = "Ver " +  _onlineVersion.ToString();
+				string onlineVersion = _onlineVersion.ToString();
 				ZipFile.ExtractToDirectory(gameZip, rootPath, true);
 				File.Delete(gameZip);
 
@@ -139,7 +148,7 @@ namespace DarklingsLauncher
 			catch (Exception ex)
 			{
 				Status = LauncherStatus.failed;
-				MessageBox.Show($"Error finishing download: {ex}");
+				MessageBox.Show($"Error while downloading, Check if there is a new launcher update on Gamejolt: {ex}");
 			}
 		}
 
@@ -161,6 +170,10 @@ namespace DarklingsLauncher
 			else if (Status == LauncherStatus.failed)
 			{
 				CheckForUpdates();
+			}
+			if (Status == LauncherStatus.downloadGame)
+			{
+				InstallGameFiles(false, Version.zero);
 			}
 		}
 
