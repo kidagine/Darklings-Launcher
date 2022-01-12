@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Images\Darklings.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Images\Darklings.ico" />
+    <None Remove="Images\Darklings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\Darklings.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Darklings.ico" />
+    <Resource Include="Images\Darklings.png" />
+  </ItemGroup>
+
+</Project>
