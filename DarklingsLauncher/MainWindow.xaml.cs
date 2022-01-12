@@ -26,6 +26,7 @@ namespace DarklingsLauncher
 		private string gameZip;
 		private string gameExe;
 
+
 		private LauncherStatus _status;
 		internal LauncherStatus Status
 		{
@@ -36,16 +37,16 @@ namespace DarklingsLauncher
 				switch (_status)
 				{
 					case LauncherStatus.ready:
-						PlayButton.Content = "Launch";
+						PlayButton.Content = "Play";
 						break;
 					case LauncherStatus.failed:
-						PlayButton.Content = "Update Failed - Retry";
+						PlayButton.Content = "Failed";
 						break;
 					case LauncherStatus.downloadingGame:
-						PlayButton.Content = "Downloading Game";
+						PlayButton.Content = "Downloading";
 						break;
 					case LauncherStatus.downloadingUpdate:
-						PlayButton.Content = "Downloading Update";
+						PlayButton.Content = "Updating";
 						break;
 					default:
 						break;
@@ -174,7 +175,11 @@ namespace DarklingsLauncher
 
 		private void GamejoltButton_Click(object sender, RoutedEventArgs e)
 		{
-			Process.Start("https://gamejolt.com/games/darklings/640842");
+			var uri = "https://gamejolt.com/games/darklings/640842";
+			var psi = new System.Diagnostics.ProcessStartInfo();
+			psi.UseShellExecute = true;
+			psi.FileName = uri;
+			System.Diagnostics.Process.Start(psi);
 		}
 	}
 

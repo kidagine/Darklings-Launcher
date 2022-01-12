@@ -13,6 +13,7 @@
     <None Remove="Fonts\PressStart2P.ttf" />
     <None Remove="Images\Darklings.ico" />
     <None Remove="Images\Darklings.png" />
+    <None Remove="Images\Gamejolt.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
     <Resource Include="Fonts\PressStart2P.ttf" />
     <Resource Include="Images\Darklings.ico" />
     <Resource Include="Images\Darklings.png" />
+    <Resource Include="Images\Gamejolt.png" />
   </ItemGroup>
 
 </Project>
