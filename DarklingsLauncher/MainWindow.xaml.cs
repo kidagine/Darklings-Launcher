@@ -78,7 +78,8 @@ namespace DarklingsLauncher
 
 					if (onlineVersion.IsDifferentThan(localVersion))
 					{
-						InstallGameFiles(true, onlineVersion);
+						Status = LauncherStatus.downloadingGame;
+						//InstallGameFiles(true, onlineVersion);
 					}
 					else
 					{
