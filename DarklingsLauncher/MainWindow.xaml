@@ -10,15 +10,57 @@
 		WindowStartupLocation="CenterScreen"
 		ContentRendered="Window_ContentRendered"
 		Title="Darklings Launcher" Height="576" Width="1000">
+	<Window.Resources>
+		<SolidColorBrush x:Key="Button.MouseOver.Background" Color="White"/>
+		<SolidColorBrush x:Key="Button.MouseOver.Border" Color="White"/>
+		<SolidColorBrush x:Key="Button.Pressed.Background" Color="White"/>
+		<SolidColorBrush x:Key="Button.Pressed.Border" Color="White"/>
+		<SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
+		<SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+		<SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
+		<ControlTemplate x:Key="DarklingsButtonStyle" TargetType="{x:Type ButtonBase}">
+			<Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+				<ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+			</Border>
+			<ControlTemplate.Triggers>
+				<Trigger Property="Button.IsDefaulted" Value="true">
+					<Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+				</Trigger>
+				<Trigger Property="IsMouseOver" Value="true">
+					<Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+					<Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+					<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="Black"/>
+				</Trigger>
+				<Trigger Property="IsPressed" Value="true">
+					<Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+					<Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+				</Trigger>
+				<Trigger Property="IsEnabled" Value="false">
+					<Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+					<Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+					<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+				</Trigger>
+			</ControlTemplate.Triggers>
+		</ControlTemplate>
+	</Window.Resources>
 	<WindowChrome.WindowChrome>
 		<WindowChrome CaptionHeight="32" ResizeBorderThickness="{x:Static SystemParameters.WindowResizeBorderThickness}" />
 	</WindowChrome.WindowChrome>
 
 	<Grid VerticalAlignment="Top">
 		<Image Stretch="UniformToFill" Source="Images/Darklings.png" HorizontalAlignment="Right"></Image>
-		<TextBlock Style="{StaticResource PressStart2P}" Text="Ver 0.0.0"  Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontWeight="Light" FontSize="13" Foreground="White" Margin="0,0,106,150"></TextBlock>
-		<Button Style="{StaticResource PressStart2P}" Cursor="Hand" Name="PlayButton" Content="Updating" Click="PlayButton_Click" Height="60" FontSize="16" Foreground="White" Background="Black" BorderThickness="3" BorderBrush="White" Margin="0,0,106,72" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinWidth="150"></Button>
+		<TextBlock Style="{StaticResource PressStart2P}" Text="Ver 0.0.0"  Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontWeight="Light" FontSize="13" Foreground="White" Margin="0,0,106,115"></TextBlock>
+		<ProgressBar Visibility="Hidden" Name="ProgressBar" Minimum="0" Maximum="100" BorderThickness="3" Value="0" Width="600" Height="30" Foreground="White" Background="Black" BorderBrush="White" Margin="58,486,342,60"  />
+		<Button Template="{DynamicResource DarklingsButtonStyle}" Style="{StaticResource PressStart2P}" Cursor="Hand" Name="PlayButton" Content="Updating" Click="PlayButton_Click" Height="60" FontSize="16" Foreground="White" Background="Black" BorderThickness="3" BorderBrush="White" Margin="0,0,106,45" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinWidth="170">
+		</Button>
 		<TextBlock Text="Darklings" Name="TopBarName" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,0,717,549" RenderTransformOrigin="0.5,0.5" TextAlignment="Left" Width="265"></TextBlock>
+		<ScrollViewer HorizontalScrollBarVisibility="Hidden"  Width="300" Margin="58,199,642,141"  VerticalScrollBarVisibility="Auto">
+			<StackPanel Name="PatchNotesStackPanel" Background="Black" CanVerticallyScroll="True">
+				<TextBlock Style="{StaticResource PressStart2P}" Foreground="White" FontSize="12" Padding="10, 10, 0, 10" Text="Patch Notes:"></TextBlock>
+				<StackPanel Orientation="Vertical" Width="300">
+				</StackPanel>
+			</StackPanel>
+		</ScrollViewer>
 		<StackPanel Background="#7F000000" WindowChrome.IsHitTestVisibleInChrome="True" VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Vertical" Height="576" Width="48">
 			<Button Name="GamejoltButton" Cursor="Hand" Click="GamejoltButton_Click" Height="32" Width="32"  Margin="0,133,0,0" FontSize="20" FontWeight="Bold" Foreground="White" BorderBrush="Black" HorizontalAlignment="Center" >
 				<Button.Background>

@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.IO.Compression;
 using System.Net;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace DarklingsLauncher
 {
@@ -14,6 +16,7 @@ namespace DarklingsLauncher
 		failed,
 		downloadingGame,
 		downloadGame,
+		downloadUpdate,
 		downloadingUpdate
 	}
 
@@ -26,7 +29,11 @@ namespace DarklingsLauncher
 		private string versionFile;
 		private string gameZip;
 		private string gameExe;
-
+		private readonly string _versionSplit = "Version:";
+		private readonly string _patchNotesSplit = "Patch Notes:";
+		private string versionNumber;
+		private string versionFullFile;
+		private Version onlineVersion;
 
 		private LauncherStatus _status;
 		internal LauncherStatus Status
@@ -44,10 +51,13 @@ namespace DarklingsLauncher
 						PlayButton.Content = "Failed";
 						break;
 					case LauncherStatus.downloadingGame:
-						PlayButton.Content = "Downloading";
+						PlayButton.Content = "Installing";
 						break;
 					case LauncherStatus.downloadGame:
 						PlayButton.Content = "Download";
+						break;
+					case LauncherStatus.downloadUpdate:
+						PlayButton.Content = "Update";
 						break;
 					case LauncherStatus.downloadingUpdate:
 						PlayButton.Content = "Updating";
@@ -60,6 +70,7 @@ namespace DarklingsLauncher
 
 		public MainWindow()
 		{
+
 			InitializeComponent();
 			rootPath = Directory.GetCurrentDirectory();
 			versionFile = Path.Combine(rootPath, "Version.txt");
@@ -68,9 +79,37 @@ namespace DarklingsLauncher
 
 			if (File.Exists(versionFile))
 			{
-				Version localVersion = new Version(File.ReadAllText(versionFile));
+				versionFullFile = File.ReadAllText(versionFile);
+				int versionTextPosition = versionFullFile.IndexOf(_versionSplit) + _versionSplit.Length;
+				versionNumber = " " + versionFullFile.Substring(versionTextPosition, versionFullFile.LastIndexOf(_patchNotesSplit) - versionTextPosition).Trim();
+				Version localVersion = new Version(versionNumber);
 				VersionText.Text = "Ver " + localVersion.ToString();
 				TopBarName.Text = "Darklings " + localVersion.ToString();
+				LoadPatchNotes(versionFullFile);
+			}
+		}
+
+		private void LoadPatchNotes(string file)
+		{
+
+			string patchNotesWhole = file.Substring(file.IndexOf(_patchNotesSplit) + _patchNotesSplit.Length).Trim();
+			string[] patchNotes = patchNotesWhole.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+			PatchNotesStackPanel.Children.Clear();
+			for (int i = 0; i < patchNotes.Length; i++)
+			{
+				StackPanel stackPanel = new StackPanel();
+				stackPanel.Orientation = Orientation.Vertical;
+				stackPanel.Width = 300;
+				TextBlock textBlock = new TextBlock();
+				textBlock.Text = patchNotes[i].Trim();
+				textBlock.Padding = new Thickness(10, 5, 0, 5);
+				textBlock.TextWrapping = TextWrapping.Wrap;
+				textBlock.FontSize = 9;
+				textBlock.LineHeight = 10;
+				textBlock.Style = (Style)FindResource("PressStart2P");
+				textBlock.Foreground = new SolidColorBrush(Colors.White);
+				stackPanel.Children.Add(textBlock);
+				PatchNotesStackPanel.Children.Add(stackPanel);
 			}
 		}
 
@@ -78,17 +117,19 @@ namespace DarklingsLauncher
 		{
 			if (File.Exists(versionFile))
 			{
-				Version localVersion = new Version(File.ReadAllText(versionFile));
+				Version localVersion = new Version(versionNumber);
 				VersionText.Text = "Ver " + localVersion.ToString();
 				TopBarName.Text = "Darklings " + localVersion.ToString();
 				try
 				{
 					WebClient webClient = new WebClient();
-					Version onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N"));
+					string versionFullFile = webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N");
+					int versionTextPosition = versionFullFile.IndexOf(_versionSplit) + _versionSplit.Length;
+					onlineVersion = new Version(" " + versionFullFile.Substring(versionTextPosition, versionFullFile.LastIndexOf(_patchNotesSplit) - versionTextPosition).Trim());
 
 					if (onlineVersion.IsDifferentThan(localVersion))
 					{
-						InstallGameFiles(true, onlineVersion);
+						Status = LauncherStatus.downloadUpdate;
 					}
 					else
 					{
@@ -103,6 +144,7 @@ namespace DarklingsLauncher
 			}
 			else
 			{
+				ProgressBar.Visibility = Visibility.Visible;
 				Status = LauncherStatus.downloadGame;
 			}
 		}
@@ -113,16 +155,24 @@ namespace DarklingsLauncher
 			{
 				WebClient webClient = new WebClient();
 				FileDownloader fileDownloader = new FileDownloader();
+				string versionOnlineFile = versionFullFile;
 				if (_isUpdate)
 				{
 					Status = LauncherStatus.downloadingUpdate;
+					versionOnlineFile = webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N");
+					int versionTextPosition = versionOnlineFile.IndexOf(_versionSplit) + _versionSplit.Length;
+					onlineVersion = new Version(" " + versionOnlineFile.Substring(versionTextPosition, versionOnlineFile.LastIndexOf(_patchNotesSplit) - versionTextPosition).Trim());
 				}
 				else
 				{
 					Status = LauncherStatus.downloadingGame;
-					_onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N"));
+					versionOnlineFile = webClient.DownloadString("https://drive.google.com/uc?export=download&id=1o7F9CXWegYpv8ht6aGDrkoo2LZWOxX9N");
+					int versionTextPosition = versionOnlineFile.IndexOf(_versionSplit) + _versionSplit.Length;
+					onlineVersion = new Version(" " + versionOnlineFile.Substring(versionTextPosition, versionOnlineFile.LastIndexOf(_patchNotesSplit) - versionTextPosition).Trim());
 				}
-				fileDownloader.DownloadFileCompleted += (sender, e) => DownloadGameCompletedCallback(sender, e, _onlineVersion);
+				fileDownloader.DownloadProgressChanged += (sender, e) => UpdateInstallProgress(sender, e);
+				fileDownloader.DownloadFileCompleted += (sender, e) => DownloadGameCompletedCallback(sender, e, onlineVersion, versionOnlineFile);
+				ProgressBar.Visibility = Visibility.Visible;
 				fileDownloader.DownloadFileAsync("https://drive.google.com/uc?export=download&id=1On2RMzHNSTV3oYhDNMd77F4lU9zCJPm-", gameZip);
 			}
 			catch (Exception ex)
@@ -132,7 +182,12 @@ namespace DarklingsLauncher
 			}
 		}
 
-		private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e, Version _onlineVersion)
+		private void UpdateInstallProgress(object sender, FileDownloader.DownloadProgress e)
+		{
+			ProgressBar.Value = e.ProgressPercentage;
+		}
+
+		private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e, Version _onlineVersion, string onlineFile)
 		{
 			try
 			{
@@ -140,10 +195,13 @@ namespace DarklingsLauncher
 				ZipFile.ExtractToDirectory(gameZip, rootPath, true);
 				File.Delete(gameZip);
 
-				File.WriteAllText(versionFile, onlineVersion);
+				File.WriteAllText(versionFile, onlineFile);
 
-				VersionText.Text = onlineVersion;
+				TopBarName.Text = "Darklings " + onlineVersion.ToString();
+				VersionText.Text = "Ver " + onlineVersion;
 				Status = LauncherStatus.ready;
+				ProgressBar.Visibility = Visibility.Hidden;
+				LoadPatchNotes(onlineFile);
 			}
 			catch (Exception ex)
 			{
@@ -175,6 +233,10 @@ namespace DarklingsLauncher
 			{
 				InstallGameFiles(false, Version.zero);
 			}
+			if (Status == LauncherStatus.downloadUpdate)
+			{
+				InstallGameFiles(true, onlineVersion);
+			}
 		}
 
 		private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -190,7 +252,7 @@ namespace DarklingsLauncher
 		private void GamejoltButton_Click(object sender, RoutedEventArgs e)
 		{
 			var uri = "https://gamejolt.com/games/darklings/640842";
-			var psi = new System.Diagnostics.ProcessStartInfo();
+			var psi = new ProcessStartInfo();
 			psi.UseShellExecute = true;
 			psi.FileName = uri;
 			System.Diagnostics.Process.Start(psi);
