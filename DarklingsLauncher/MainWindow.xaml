@@ -48,7 +48,7 @@
 	</WindowChrome.WindowChrome>
 
 	<Grid VerticalAlignment="Top">
-		<Image Stretch="UniformToFill" Source="Images/Darklings.png" HorizontalAlignment="Right"></Image>
+		<Image Stretch="UniformToFill" Name="DarklingsImage" Source="Images/Darklings.png" HorizontalAlignment="Right"></Image>
 		<TextBlock Style="{StaticResource PressStart2P}" Text="Ver 0.0.0"  Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontWeight="Light" FontSize="13" Foreground="White" Margin="0,0,106,115"></TextBlock>
 		<ProgressBar Visibility="Hidden" Name="ProgressBar" Minimum="0" Maximum="100" BorderThickness="3" Value="0" Width="600" Height="30" Foreground="White" Background="Black" BorderBrush="White" Margin="58,486,342,60"  />
 		<Button Template="{DynamicResource DarklingsButtonStyle}" Style="{StaticResource PressStart2P}" Cursor="Hand" Name="PlayButton" Content="Updating" Click="PlayButton_Click" Height="60" FontSize="16" Foreground="White" Background="Black" BorderThickness="3" BorderBrush="White" Margin="0,0,106,45" VerticalAlignment="Bottom" HorizontalAlignment="Right" MinWidth="170">

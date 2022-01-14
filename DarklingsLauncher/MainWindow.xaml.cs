@@ -7,6 +7,7 @@ using System.Net;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace DarklingsLauncher
 {
@@ -29,6 +30,7 @@ namespace DarklingsLauncher
 		private string versionFile;
 		private string gameZip;
 		private string gameExe;
+		private String imagePath;
 		private readonly string _versionSplit = "Version:";
 		private readonly string _patchNotesSplit = "Patch Notes:";
 		private string versionNumber;
@@ -73,6 +75,7 @@ namespace DarklingsLauncher
 
 			InitializeComponent();
 			rootPath = Directory.GetCurrentDirectory();
+			imagePath = Path.Combine(rootPath, "Darklings.png");
 			versionFile = Path.Combine(rootPath, "Version.txt");
 			gameZip = Path.Combine(rootPath, "Build.zip");
 			gameExe = Path.Combine(rootPath, "Build", "Darklings.exe");
@@ -202,12 +205,20 @@ namespace DarklingsLauncher
 				Status = LauncherStatus.ready;
 				ProgressBar.Visibility = Visibility.Hidden;
 				LoadPatchNotes(onlineFile);
+				FileDownloader fileDownloader = new FileDownloader();
+				fileDownloader.DownloadFileCompleted += (sender, e) => DownloadImageCompleteCallback(sender, e);
+				fileDownloader.DownloadFileAsync("https://drive.google.com/uc?export=download&id=1Ybs7ca027GHmEg-TO7CboAq9TLTXUblc", imagePath);
 			}
 			catch (Exception ex)
 			{
 				Status = LauncherStatus.failed;
 				MessageBox.Show($"Error while downloading, Check if there is a new launcher update on Gamejolt: {ex}");
 			}
+		}
+
+		private void DownloadImageCompleteCallback(object sender, AsyncCompletedEventArgs e)
+		{
+			DarklingsImage.Source = new BitmapImage(new Uri(imagePath));
 		}
 
 		private void Window_ContentRendered(object sender, EventArgs e)
