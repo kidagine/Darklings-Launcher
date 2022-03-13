@@ -265,22 +265,24 @@ public class FileDownloader : IDisposable
 		}
 
 		int linkIndex = content.LastIndexOf("href=\"/uc?");
-		if (linkIndex < 0)
-			return true;
+		if (linkIndex >= 0)
+		{
+			linkIndex += 6;
+			int linkEnd = content.IndexOf('"', linkIndex);
+			if (linkEnd >= 0)
+			{
+				downloadAddress = new Uri("https://drive.google.com" + content.Substring(linkIndex, linkEnd - linkIndex).Replace("&amp;", "&"));
+				return false;
+			}
+		}
 
-		linkIndex += 6;
-		int linkEnd = content.IndexOf('"', linkIndex);
-		if (linkEnd < 0)
-			return true;
-
-		downloadAddress = new Uri("https://drive.google.com" + content.Substring(linkIndex, linkEnd - linkIndex).Replace("&amp;", "&"));
-		return false;
+		return true;
 	}
 
 	// Handles the following formats (links can be preceeded by https://):
-	// - drive.google.com/open?id=FILEID
-	// - drive.google.com/file/d/FILEID/view?usp=sharing
-	// - drive.google.com/uc?id=FILEID&export=download
+	// - drive.google.com/open?id=FILEID&resourcekey=RESOURCEKEY
+	// - drive.google.com/file/d/FILEID/view?usp=sharing&resourcekey=RESOURCEKEY
+	// - drive.google.com/uc?id=FILEID&export=download&resourcekey=RESOURCEKEY
 	private string GetGoogleDriveDownloadAddress(string address)
 	{
 		int index = address.IndexOf("id=");
@@ -309,7 +311,21 @@ public class FileDownloader : IDisposable
 			}
 		}
 
-		return string.Concat("https://drive.google.com/uc?id=", address.Substring(index, closingIndex - index), "&export=download");
+		string fileID = address.Substring(index, closingIndex - index);
+
+		index = address.IndexOf("resourcekey=");
+		if (index > 0)
+		{
+			index += 12;
+			closingIndex = address.IndexOf('&', index);
+			if (closingIndex < 0)
+				closingIndex = address.Length;
+
+			string resourceKey = address.Substring(index, closingIndex - index);
+			return string.Concat("https://drive.google.com/uc?id=", fileID, "&export=download&resourcekey=", resourceKey, "&confirm=t");
+		}
+		else
+			return string.Concat("https://drive.google.com/uc?id=", fileID, "&export=download&confirm=t");
 	}
 
 	public void Dispose()
